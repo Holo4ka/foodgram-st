@@ -1,0 +1,100 @@
+POST http://127.0.0.1:8000/api/users/
+Content-Type: application/json
+
+{
+    "username": "user4",
+    "password": "changemeplese"
+}
+
+###
+
+POST http://127.0.0.1:8000/api/jwt/create/
+Content-Type: application/json
+
+{
+    "username": "user2",
+    "password": "changemeplese"
+}
+
+###
+
+GET http://127.0.0.1:8000/api/ingredients/?search=б
+
+###
+
+GET http://127.0.0.1:8000/api/ingredients/?name=б
+
+###
+
+GET http://127.0.0.1:8000/api/users/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ3MzAxNjA4LCJpYXQiOjE3NDcyMTUyMDgsImp0aSI6IjJhMmI1MjVlNzEzNzQ1MDE5MTYzMmNhMzUyYTFiYjI2IiwidXNlcl9pZCI6MX0.LIAFjpxX8r9D2_v6C8VAp-Nz73hkXnqOb3ZS3905qPo
+
+###
+
+DELETE http://127.0.0.1:8000/api/users/me/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ3MzAxNjA4LCJpYXQiOjE3NDcyMTUyMDgsImp0aSI6IjJhMmI1MjVlNzEzNzQ1MDE5MTYzMmNhMzUyYTFiYjI2IiwidXNlcl9pZCI6MX0.LIAFjpxX8r9D2_v6C8VAp-Nz73hkXnqOb3ZS3905qPo
+Content-Type: application/json
+
+{
+    "current_password": "changemeplese"
+}
+
+###
+
+POST http://127.0.0.1:8000/api/users/
+Content-Type: application/json
+
+{
+    "first_name": "Igorechek",
+    "last_name": "Boring",
+    "email": "ighor156@gmail.com",
+    "username": "holochka2",
+    "password": "changemeplese"
+}
+
+###
+
+POST http://127.0.0.1:8000/api/auth/token/login/
+Content-Type: application/json
+
+{
+    "email": "ighor156@gmail.com",
+    "password": "changemeplese"
+}
+
+###
+POST http://localhost:8000/api/recipes/
+Authorization: Token c4e43701c747dcd0db0de6d302ac57ea8dc719c4
+Content-Type: application/json
+
+{
+    "cooking_time": "1",
+    "ingredients": [{"id": 34, "amount": 100}],
+    "name": "Апельсиновая вода два",
+    "text": "Апельсиновая вода вторая итерация"
+}
+
+###
+
+GET http://localhost:8000/api/users/
+Authorization: Token c4e43701c747dcd0db0de6d302ac57ea8dc719c4
+
+###
+
+GET http://localhost:8000/api/recipes/
+Authorization: Token c4e43701c747dcd0db0de6d302ac57ea8dc719c4
+
+###
+
+GET http://localhost:8000/api/recipes/?is_in_shopping_list=True
+Authorization: Token c4e43701c747dcd0db0de6d302ac57ea8dc719c4
+
+###
+
+GET http://localhost:8000/api/users/subscriptions/
+Authorization: Token c4e43701c747dcd0db0de6d302ac57ea8dc719c4
+
+###
+
+POST http://localhost:8000/api/users/1/subscribe/
+Authorization: Token e8f6f6be459577de8080a565992377d58f68f1c7

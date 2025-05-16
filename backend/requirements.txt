@@ -1,0 +1,12 @@
+Django
+djangorestframework
+djangorestframework-simplejwt
+Pillow
+PyJWT
+requests
+djoser
+webcolors
+psycopg2-binary
+Pillow
+PyYAML
+django_filter
