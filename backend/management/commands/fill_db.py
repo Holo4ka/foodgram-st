@@ -1,7 +1,12 @@
 import json
-from recipes.models import Recipe
+from recipes.models import Ingredient
+from django.core.management.base import BaseCommand
 
-with open('path/to/your_file.json', encoding='utf-8') as f:
-    data = json.load(f)
-    for item in data:
-        Recipe.objects.create(**item)
+class Command(BaseCommand):
+    help = 'Заполняет базу данных ингредиентами'
+
+    def handle(self, *args, **kwargs):
+        with open('../../recipes/ingredients.json', encoding='utf-8') as f:
+            data = json.load(f)
+            for item in data:
+                Ingredient.objects.create(**item)
