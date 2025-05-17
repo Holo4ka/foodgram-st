@@ -1,20 +1,31 @@
 from rest_framework.filters import SearchFilter
 import django_filters
-from .models import Recipe
+from .models import Recipe, ShoppingList, Favorite
 
 class NameSearchFilter(SearchFilter):
     search_param = 'name'
 
 
 class RecipeShoppingListFilter(django_filters.FilterSet):
-    is_in_shopping_list = django_filters.BooleanFilter(method='filter_in_shopping_list')
+    is_in_shopping_cart = django_filters.NumberFilter(method='filter_in_shopping_cart')
+    is_favorited = django_filters.NumberFilter(method='filter_is_favorited')
+    author = django_filters.NumberFilter(field_name='author__id')
 
     class Meta:
         model = Recipe
-        fields = ('is_in_shopping_list',)
+        fields = ('is_in_shopping_cart', 'is_favorited')
 
-    def filter_in_shopping_list(self, queryset, name, value):
+    def filter_in_shopping_cart(self, queryset, name, value):
         user = self.request.user
-        if value and user.is_authenticated:
-            return queryset.filter(author=user)  # in_shopping_lists__user
-        return queryset
+        # queryset = ShoppingList.objects.filter(user=user)
+        if user.is_anonymous or not value:
+            return queryset
+        # queryset = queryset.filter(list_owner__user=user)
+        return queryset.filter(recipe_in_list__user=user)
+
+    
+    def filter_is_favorited(self, queryset, name, value):
+        user = self.request.user
+        if user.is_anonymous or not value:
+            return queryset
+        return queryset.filter(favorite__user=user)

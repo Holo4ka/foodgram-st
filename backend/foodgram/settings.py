@@ -80,13 +80,13 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
+'''DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}
-'''DATABASES = {
+}'''
+DATABASES = {
     'default': {
         # Меняем настройку Django: теперь для работы будет использоваться
         # бэкенд postgresql
@@ -97,7 +97,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', ''),
         'PORT': os.getenv('DB_PORT', 5432)
     }
-}'''
+}
 
 
 # Password validation
@@ -156,7 +156,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ],
 
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'recipes.pagination.PageLimitPagination',
     'PAGE_SIZE': 10,
 
 }
@@ -171,6 +171,8 @@ DJOSER = {
     "LOGIN_FIELD": "email",
     'SERIALIZERS': {
         'user_create': 'recipes.serializers.CustomUserSerializer',
+        'user': 'recipes.serializers.CustomUserSerializer',
+        'current_user': 'recipes.serializers.CustomUserSerializer',
     },
     "PERMISSIONS": {  # TODO: Удалить пермишен после разработки
         "user_delete": ["rest_framework.permissions.IsAuthenticated"],
