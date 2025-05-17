@@ -6,7 +6,7 @@ class Command(BaseCommand):
     help = 'Заполняет базу данных ингредиентами'
 
     def handle(self, *args, **kwargs):
-        with open('../../recipes/ingredients.json', encoding='utf-8') as f:
+        with open('././ingredients.json', encoding='utf-8') as f:
             data = json.load(f)
             for item in data:
                 Ingredient.objects.create(**item)
