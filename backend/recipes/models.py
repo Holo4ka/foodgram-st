@@ -25,25 +25,16 @@ class Recipe(models.Model):
         null=True,
     )
     ingredients = models.ManyToManyField(Ingredient, through="RecipeIngredient")
-    cooking_time = models.PositiveIntegerField(
-        validators=[MaxValueValidator(1440)],
-        help_text="Время приготовления в минутах (макс. 1440)"
-    )
+    cooking_time = models.PositiveIntegerField()
 
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='recipe')
     name = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name='ingredient')
-    amount = models.FloatField()
-    measurement_unit = models.CharField(max_length=20)
+    amount = models.IntegerField()
 
     class Meta:
         unique_together = ('recipe', 'name')
-
-
-'''class ShoppingList(models.Model):
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cart_owner')
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='recipe_in_cart')'''
 
 
 class Follow(models.Model):
@@ -81,7 +72,8 @@ class ShoppingList(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='recipe_in_list')
 
     class Meta:
-        unique_together = ('user', 'recipe')  # Один рецепт один раз в списке
+        unique_together = ('user', 'recipe')
 
-    def __str__(self):
-        return f"{self.user.username} — {self.recipe.name}"
+    '''def __str__(self):
+        return f"{self.user.username} — {self.recipe.name}"    # Один рецепт один раз в списке
+'''

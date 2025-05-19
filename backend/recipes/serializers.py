@@ -26,12 +26,22 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=False)
-    measurement_unit = serializers.CharField(required=False)
-    amount = serializers.FloatField(required=False)
+    measurement_unit = serializers.SerializerMethodField()
+    amount = serializers.IntegerField(required=False)
+    id = serializers.SerializerMethodField()
 
     class Meta:
         model = RecipeIngredient
-        fields = ('name', 'amount', 'measurement_unit')
+        fields = ('id', 'name', 'amount', 'measurement_unit',)
+    
+    def get_measurement_unit(self, obj):
+        ingr = Ingredient.objects.get(name=obj.name)
+        return ingr.measurement_unit
+    
+    def get_id(self, obj):
+        ingr = Ingredient.objects.get(name=obj.name)
+        return ingr.id
+        
 
 
 class CustomUserSerializer(UserSerializer):
@@ -83,11 +93,11 @@ class AvatarSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
+ # , default=serializers.CurrentUserDefault()
 class RecipeSerializer(serializers.ModelSerializer):
-    image = Base64ImageField(required=True)  # image = Base64ImageField(required=False, allow_null=True)
+    image = Base64ImageField(required=True)
     author = CustomUserSerializer(
-        read_only=True)  # , default=serializers.CurrentUserDefault()
+        read_only=True) 
     ingredients = RecipeIngredientSerializer(required=False, many=True)
     is_in_shopping_cart = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
@@ -126,16 +136,22 @@ class RecipeSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         _ = validated_data.pop('ingredients')
         ingredients = self.initial_data.get('ingredients')
-        print(ingredients)
+        # print(ingredients)
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
         instance.cooking_time = validated_data.get('cooking_time', instance.cooking_time)
         instance.image = validated_data.get('image', instance.image)
         instance.save()
-        old_ingr = RecipeIngredient.objects.filter(recipe=instance)
+        # old_ingr = RecipeIngredient.objects.get(recipe=instance)
+        old_ingrs = RecipeIngredient.objects.filter(recipe=instance)
+        # print(old_ingrs)
+        # print(old_ingrs[0])
+        old_ingrs.delete()
         for ingredient in ingredients:
+            # print(ingredient)
             ingr_id = ingredient['id']
             ingr_unit = Ingredient.objects.get(id=ingr_id)
+            # print(ingr_unit)
             RecipeIngredient.objects.create(
                 recipe=instance,
                 name=ingr_unit,
