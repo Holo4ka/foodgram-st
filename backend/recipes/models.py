@@ -1,7 +1,5 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.core.validators import MaxValueValidator
-from django.db.models import Q
 
 User = get_user_model()
 
@@ -19,19 +17,25 @@ class Recipe(models.Model):
         User, on_delete=models.CASCADE, related_name='recipe'
     )
     name = models.CharField(max_length=128)
-    text = models.CharField(max_length=256)
+    text = models.CharField(max_length=1024)
     image = models.ImageField(
         upload_to='recipes/images/',
         null=True,
     )
     ingredients = models.ManyToManyField(Ingredient, through="RecipeIngredient")
     cooking_time = models.PositiveIntegerField()
+    short_url = models.CharField(max_length=32)
+
+    def get_absolute_url(self):
+         print(f'/recipes/{self.pk}/')
+         return f'/recipes/{self.pk}/'
 
 
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='recipe')
     name = models.ForeignKey(Ingredient, on_delete=models.CASCADE, related_name='ingredient')
     amount = models.IntegerField()
+    measurement_unit = models.CharField(max_length=64, null=True)
 
     class Meta:
         unique_together = ('recipe', 'name')
@@ -73,7 +77,3 @@ class ShoppingList(models.Model):
 
     class Meta:
         unique_together = ('user', 'recipe')
-
-    '''def __str__(self):
-        return f"{self.user.username} — {self.recipe.name}"    # Один рецепт один раз в списке
-'''

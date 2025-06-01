@@ -1,8 +1,16 @@
-from rest_framework import serializers
+from rest_framework import serializers, status
 from django.core.files.base import ContentFile
 import base64
 from djoser.serializers import UserSerializer
-from .models import Ingredient, Recipe, Follow, User, RecipeIngredient, ShoppingList, Favorite
+import random
+
+from .models import Ingredient, Recipe, Follow, User, \
+    RecipeIngredient, ShoppingList, Favorite
+
+
+CHARACTERS = 'ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz234567890'
+URL_LENGTH = 6
+
 
 class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):
@@ -26,17 +34,13 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     name = serializers.CharField(required=False)
-    measurement_unit = serializers.SerializerMethodField()
+    measurement_unit = serializers.CharField(required=False)
     amount = serializers.IntegerField(required=False)
     id = serializers.SerializerMethodField()
 
     class Meta:
         model = RecipeIngredient
         fields = ('id', 'name', 'amount', 'measurement_unit',)
-    
-    def get_measurement_unit(self, obj):
-        ingr = Ingredient.objects.get(name=obj.name)
-        return ingr.measurement_unit
     
     def get_id(self, obj):
         ingr = Ingredient.objects.get(name=obj.name)
@@ -50,7 +54,8 @@ class CustomUserSerializer(UserSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'avatar', 'is_subscribed', 'password')
+        fields = ('email', 'id', 'username', 'first_name',
+                  'last_name', 'avatar', 'is_subscribed', 'password')
 
         extra_kwargs = {
             'email': {'required': True},
@@ -64,7 +69,9 @@ class CustomUserSerializer(UserSerializer):
         author = self.context['request'].user
         if not author:
             return False
-        queryset = Follow.objects.filter(user=author.id).filter(following=obj.id)
+        queryset = Follow.objects.filter(
+            user=author.id
+            ).filter(following=obj.id)
         if queryset:
             return True
         return False
@@ -95,7 +102,7 @@ class AvatarSerializer(serializers.ModelSerializer):
 
  # , default=serializers.CurrentUserDefault()
 class RecipeSerializer(serializers.ModelSerializer):
-    image = Base64ImageField(required=True)
+    image = Base64ImageField(required=False)
     author = CustomUserSerializer(
         read_only=True) 
     ingredients = RecipeIngredientSerializer(required=False, many=True)
@@ -104,7 +111,23 @@ class RecipeSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Recipe
-        fields = ('id', 'author', 'ingredients', 'image', 'name', 'text', 'cooking_time', 'is_in_shopping_cart', 'is_favorited')
+        fields = ('id', 'author', 'ingredients', 'image', 
+                  'name', 'text', 'cooking_time', 'is_in_shopping_cart', 
+                  'is_favorited')
+    
+    def create_short_url(self):
+        while True:
+                short_url = ''.join(
+                    random.choices(
+                        CHARACTERS,  
+                        k=URL_LENGTH
+                    )
+                )
+                if not Recipe.objects.filter(
+                    short_url=short_url
+                ).exists():
+                    break
+        return short_url
     
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
@@ -121,7 +144,8 @@ class RecipeSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         _ = validated_data.pop('ingredients')
         ingredients = self.initial_data.get('ingredients')
-        recipe = Recipe.objects.create(**validated_data)
+        short_url = self.create_short_url()
+        recipe = Recipe.objects.create(**validated_data, short_url=short_url)
         for ingredient in ingredients:
             ingr_id = ingredient['id']
             ingr_unit = Ingredient.objects.get(id=ingr_id)
@@ -136,22 +160,18 @@ class RecipeSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         _ = validated_data.pop('ingredients')
         ingredients = self.initial_data.get('ingredients')
-        # print(ingredients)
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get('cooking_time', instance.cooking_time)
+        instance.cooking_time = validated_data.get(
+            'cooking_time', instance.cooking_time
+            )
         instance.image = validated_data.get('image', instance.image)
         instance.save()
-        # old_ingr = RecipeIngredient.objects.get(recipe=instance)
         old_ingrs = RecipeIngredient.objects.filter(recipe=instance)
-        # print(old_ingrs)
-        # print(old_ingrs[0])
         old_ingrs.delete()
         for ingredient in ingredients:
-            # print(ingredient)
             ingr_id = ingredient['id']
             ingr_unit = Ingredient.objects.get(id=ingr_id)
-            # print(ingr_unit)
             RecipeIngredient.objects.create(
                 recipe=instance,
                 name=ingr_unit,
@@ -176,12 +196,6 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
-    
-    '''def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        recipes = Recipe.objects.filter(author=self.context['request'].user)
-        representation['recipes'] = ShortRecipeSerializer(recipes, many=True).data
-        return representation'''
 
 
 class ShoppingListSerializer(serializers.ModelSerializer):
@@ -232,26 +246,30 @@ class FollowSerializer(serializers.ModelSerializer):
 class FollowUserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
-    # recipes = ShortRecipeSerializer(many=True, read_only=True)
     recipes = serializers.SerializerMethodField()
     
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'avatar', 'is_subscribed', 'recipes_count', 'recipes')
+        fields = ('email', 'id', 'username', 'first_name', 'last_name', 
+                  'avatar', 'is_subscribed', 'recipes_count', 'recipes')
     
     def get_is_subscribed(self, obj):
         author = self.context['request'].user
         if not author:
             return False
-        queryset = Follow.objects.filter(user=author.id).filter(following=obj.id)
+        queryset = Follow.objects.filter(
+            user=author.id
+            ).filter(following=obj.id)
         if queryset:
             return True
         return False
     
     def get_recipes(self, obj):
-        recipes = obj.recipe.filter(author=obj).all()
-        return ShortRecipeSerializer(recipes, many=True, context={'request': self.context['request']}).data
+        recipes = obj.recipe.filter(author=obj).all()[:3]
+        return ShortRecipeSerializer(
+            recipes,
+            many=True,
+            context={'request': self.context['request']}).data
 
     def get_recipes_count(self, obj):
         return Recipe.objects.filter(author=obj).count()
-    

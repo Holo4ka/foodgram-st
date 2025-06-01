@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
-from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,7 +43,7 @@ INSTALLED_APPS = [
     'django_filters',
     'djoser',
     'recipes.apps.RecipesConfig',
-    'users.apps.UsersConfig'
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -80,13 +79,13 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
+'''DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}
-'''DATABASES = {
+}'''
+DATABASES = {
     'default': {
         # Меняем настройку Django: теперь для работы будет использоваться
         # бэкенд postgresql
@@ -98,7 +97,7 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', 5432)
     }
 }
-'''
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -161,12 +160,6 @@ REST_FRAMEWORK = {
 
 }
 
-'''SIMPLE_JWT = {
-    # Устанавливаем срок жизни токена
-   'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-   'AUTH_HEADER_TYPES': ('Bearer',),
-}'''
-
 DJOSER = {
     "LOGIN_FIELD": "email",
     'SERIALIZERS': {
@@ -174,7 +167,10 @@ DJOSER = {
         'user': 'recipes.serializers.CustomUserSerializer',
         'current_user': 'recipes.serializers.CustomUserSerializer',
     },
-    "PERMISSIONS": {  # TODO: Удалить пермишен после разработки
-        "user_delete": ["rest_framework.permissions.IsAuthenticated"],
-    },
+    
 }
+
+'''
+"PERMISSIONS": {  # TODO: Удалить пермишен после разработки
+        "user_delete": ["rest_framework.permissions.IsAuthenticated"],
+    },'''

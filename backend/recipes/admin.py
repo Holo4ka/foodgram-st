@@ -10,9 +10,14 @@ class UserAdmin(admin.ModelAdmin):
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'author',
-        'name'
+        'name',
+        'favorite_count',
     )
-    search_fields = ('author', 'name')  
+    search_fields = ('author', 'name')
+
+    def favorite_count(self, obj):
+        count = Favorite.objects.filter(recipe=obj).count()
+        return count
 
 
 class IngredientAdmin(admin.ModelAdmin):
@@ -22,7 +27,6 @@ class IngredientAdmin(admin.ModelAdmin):
     )
     search_fields = ('name',)
 
-# TODO: Добавить количество добавлений в избранное
 
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
