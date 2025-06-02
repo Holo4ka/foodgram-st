@@ -7,3 +7,7 @@ import '@testing-library/jest-dom';
 global.clearImmediate = (handle) => {
   clearTimeout(handle);
 };
+
+global.setImmediate = (fn, ...args) => {
+  return setTimeout(fn, 0, ...args);
+};
