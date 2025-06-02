@@ -1,4 +1,4 @@
-from rest_framework import serializers, status
+from rest_framework import serializers
 from django.core.files.base import ContentFile
 import base64
 from djoser.serializers import UserSerializer
