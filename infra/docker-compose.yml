@@ -23,8 +23,10 @@ services:
   frontend:
     container_name: foodgram-front
     build: ../frontend
+    command: cp -r /app/build/. /static/
     volumes:
       - ../frontend/:/app/result_build/
+      - static:/static
   nginx:
     container_name: foodgram-proxy
     image: nginx:1.25.4-alpine
@@ -35,3 +37,4 @@ services:
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
       - media:/app/media
+      - static:/static/

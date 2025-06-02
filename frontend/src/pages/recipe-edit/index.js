@@ -91,15 +91,16 @@ const RecipeEdit = ({ onItemDelete }) => {
         })
         .then((res) => {
           const { image, cooking_time, name, ingredients, text } = res;
+          setRecipeIngredients(ingredients);
           setRecipeText(text);
           setRecipeName(name);
           setRecipeTime(cooking_time);
           setRecipeFile(image);
-          setRecipeIngredients(ingredients);
-
+          
           setLoading(false);
         })
         .catch((err) => {
+          console.log(err)
           history.push("/recipes");
         });
     },

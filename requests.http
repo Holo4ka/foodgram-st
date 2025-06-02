@@ -64,30 +64,71 @@ Content-Type: application/json
 
 ###
 POST http://localhost:8000/api/recipes/
-Authorization: Token c4e43701c747dcd0db0de6d302ac57ea8dc719c4
+Authorization: Token b3e46ab3511a2619592cc7becab8139b51214adb
 Content-Type: application/json
 
 {
     "cooking_time": "1",
-    "ingredients": [{"id": 34, "amount": 100}],
+    "ingredients": [{"id": 34, "amount": 100}, 
+    {"id": 77, "amount": 125},
+    {"id": 123, "amount": 150}],
+    "name": "Что-то",
+    "text": "С чем-то"
+}
+
+###  {"id": 100, "amount": 100}
+
+PATCH http://localhost:8000/api/recipes/1/
+Authorization: Token b3e46ab3511a2619592cc7becab8139b51214adb
+Content-Type: application/json
+
+{
+    "cooking_time": "1",
+    "ingredients": [
+        {"id": 34, "amount": 100},
+        {"id": 60, "amount": 250}],
     "name": "Апельсиновая вода два",
-    "text": "Апельсиновая вода вторая итерация"
+    "text": "Текст после изменения"
 }
 
 ###
 
+GET http://localhost:8000/api/recipes/9/get-link/
+
+###
+
+GET http://localhost:8000/api/ingredients/
+Authorization: Token b3e46ab3511a2619592cc7becab8139b51214adb
+
+###
+
 GET http://localhost:8000/api/users/
-Authorization: Token c4e43701c747dcd0db0de6d302ac57ea8dc719c4
+Authorization: Token b3e46ab3511a2619592cc7becab8139b51214adb
 
 ###
 
 GET http://localhost:8000/api/recipes/
-Authorization: Token c4e43701c747dcd0db0de6d302ac57ea8dc719c4
+Authorization: Token b3e46ab3511a2619592cc7becab8139b51214adb
 
 ###
 
-GET http://localhost:8000/api/recipes/?is_in_shopping_list=True
-Authorization: Token c4e43701c747dcd0db0de6d302ac57ea8dc719c4
+POST http://localhost:8000/api/recipes/1/shopping_cart/
+Authorization: Token b3e46ab3511a2619592cc7becab8139b51214adb
+
+###
+
+GET http://localhost:8000/api/recipes/?is_in_shopping_cart=1
+Authorization: Token b3e46ab3511a2619592cc7becab8139b51214adb
+
+###
+
+GET http://localhost:8000/api/recipes/download_shopping_cart/
+Authorization: Token b3e46ab3511a2619592cc7becab8139b51214adb
+
+###
+
+GET http://localhost:8000/api/recipes/?is_favorited=1
+Authorization: Token e8f6f6be459577de8080a565992377d58f68f1c7
 
 ###
 
@@ -96,5 +137,25 @@ Authorization: Token c4e43701c747dcd0db0de6d302ac57ea8dc719c4
 
 ###
 
+GET http://localhost:8000/api/users/subscriptions/
+Authorization: Token e8f6f6be459577de8080a565992377d58f68f1c7
+
+###
+
 POST http://localhost:8000/api/users/1/subscribe/
+Authorization: Token e8f6f6be459577de8080a565992377d58f68f1c7
+
+###
+
+GET http://localhost:8000/api/users/subscriptions/
+Authorization: Token e8f6f6be459577de8080a565992377d58f68f1c7
+
+###
+
+POST http://localhost:8000/api/recipes/21/favorite/
+Authorization: Token e8f6f6be459577de8080a565992377d58f68f1c7
+
+###
+
+DELETE http://localhost:8000/api/recipes/1/favorite/
 Authorization: Token e8f6f6be459577de8080a565992377d58f68f1c7
