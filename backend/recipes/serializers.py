@@ -102,7 +102,7 @@ class AvatarSerializer(serializers.ModelSerializer):
 
  # , default=serializers.CurrentUserDefault()
 class RecipeSerializer(serializers.ModelSerializer):
-    image = Base64ImageField(required=False)
+    image = Base64ImageField(required=True)
     author = CustomUserSerializer(
         read_only=True) 
     ingredients = RecipeIngredientSerializer(required=False, many=True)

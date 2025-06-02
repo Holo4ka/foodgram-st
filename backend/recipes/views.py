@@ -8,7 +8,7 @@ from djoser.views import UserViewSet
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.decorators import api_view, authentication_classes, \
     permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.authentication import TokenAuthentication
 
 from .pagination import PageLimitPagination
@@ -35,6 +35,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = PageLimitPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeShoppingListFilter
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
