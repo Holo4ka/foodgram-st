@@ -38,7 +38,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-    
+
     def perform_update(self, serializer):
         serializer.save(author=self.request.user)
 
@@ -46,7 +46,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 class FavoriteRecipeViewSet(viewsets.ViewSet):
     def get_queryset(self):
         return Favorite.objects.filter(member=self.request.user)
-    
+
     def create(self, request, recipe_id=None):
         all_recipes = Recipe.objects.all()
         recipe_to_follow = get_object_or_404(all_recipes, pk=recipe_id)
@@ -64,7 +64,7 @@ class FavoriteRecipeViewSet(viewsets.ViewSet):
                 return Response(output.data, status=status.HTTP_201_CREATED)
             return Response(output.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def destroy(self, request, recipe_id=None):
         recipe_to_unfollow = Recipe.objects.get(id=recipe_id)
         author = self.request.user
@@ -105,7 +105,7 @@ class FollowViewSet(viewsets.ModelViewSet):
             serializer.save(user=self.request.user, following=user_to_follow)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def destroy(self, request, user_id=None):
         try:
             user_to_unfollow = User.objects.get(id=user_id)
@@ -148,7 +148,7 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return ShoppingList.objects.filter(user=self.request.user)
-    
+
     def create(self, request, recipe_id=None):
         all_recipes = Recipe.objects.all()
         recipe_to_add = get_object_or_404(all_recipes, pk=recipe_id)
@@ -166,7 +166,7 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
                 return Response(output.data, status=status.HTTP_201_CREATED)
             return Response(output.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def destroy(self, request, recipe_id=None):
         all_recipes = Recipe.objects.all()
         recipe_to_delete = get_object_or_404(all_recipes, pk=recipe_id)

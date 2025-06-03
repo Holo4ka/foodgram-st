@@ -94,11 +94,12 @@ class AvatarSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('avatar',)
-    
+
     def update(self, instance, validated_data):
-        instance.avatar = validated_data.get('avatar', instance.avatar)
+        instance.avatar = validated_data.get('avatar', None)
         instance.save()
         return instance
+
 
  # , default=serializers.CurrentUserDefault()
 class RecipeSerializer(serializers.ModelSerializer):

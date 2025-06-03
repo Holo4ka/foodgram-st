@@ -16,7 +16,10 @@ urlpatterns = [
     path('users/subscriptions/', FollowViewSet.as_view(
         {'get': 'list'}
     )),
-    path('users/me/avatar/', AvatarViewSet.as_view({'put': 'update'})),
+    path('users/me/avatar/', AvatarViewSet.as_view({
+        'put': 'update',
+        'delete': 'update'
+    })),
     path('', include(router.urls)),
     path('recipes/<int:recipe_id>/shopping_cart/', ShoppingListViewSet.as_view(
         {'post': 'create', 'delete': 'destroy'}
