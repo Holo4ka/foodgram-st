@@ -61,5 +61,7 @@ Docker
 ## Ссылки
 
 [Документация API](http://localhost:8000/api/docs/)
+
 [Админ-панель](http://localhost:8000/admin/)
+
 [Главная страница](http://localhost:8000/recipes)

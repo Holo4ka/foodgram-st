@@ -1,8 +1,6 @@
 import json
 from recipes.models import Ingredient
 from django.core.management.base import BaseCommand
-from django.db import IntegrityError
-from django.core.exceptions import ValidationError
 
 class Command(BaseCommand):
     help = 'Заполняет базу данных ингредиентами'
