@@ -63,13 +63,7 @@ class RecipeAdmin(admin.ModelAdmin):
         return mark_safe(f'<img src="{recipe.image.url}" width="40" />')
 
     def ingredients_display(self, recipe):
-        ingredients_list = RecipeIngredient.objects.filter(
-            recipe=recipe
-        ).select_related('ingredient')
         html = ''
-        '''for ingr in ingredients_list:
-            html += f"<br><strong>{ingr.ingredient.name}</strong> — {ingr.amount} {ingr.ingredient.measurement_unit}</br>"
-        html += "</br>"'''
         html = '</br>'.join(f'<strong>{ingr.ingredient.name}</strong> — {ingr.amount} {ingr.ingredient.measurement_unit}' for ingr in recipe.ingredients_in_recipes)
         return mark_safe(html)
 
