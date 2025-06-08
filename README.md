@@ -33,7 +33,7 @@ Docker
 ```docker compose up --build```
 
 
-Заполнить базу данных тестовыми данными:
+Заполнить базу данных ингредиентами:
 ```docker compose exec backend python manage.py migrate```
 
 ```docker compose exec backend python manage.py add_ingredients```
