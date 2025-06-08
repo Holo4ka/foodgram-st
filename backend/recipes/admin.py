@@ -67,9 +67,10 @@ class RecipeAdmin(admin.ModelAdmin):
             recipe=recipe
         ).select_related('ingredient')
         html = ''
-        for ingr in ingredients_list:
+        '''for ingr in ingredients_list:
             html += f"<br><strong>{ingr.ingredient.name}</strong> — {ingr.amount} {ingr.ingredient.measurement_unit}</br>"
-        html += "</br>"
+        html += "</br>"'''
+        html = '</br>'.join(f'<strong>{ingr.ingredient.name}</strong> — {ingr.amount} {ingr.ingredient.measurement_unit}' for ingr in recipe.ingredients_in_recipes)
         return mark_safe(html)
 
 
@@ -80,14 +81,8 @@ class IngredientAdmin(admin.ModelAdmin):
         'name',
         'recipes_count',
     )
-    search_fields = ('name', 'measurement_unit', 'recipes_count')
-    # Но зачем добавлять поиск по ед. изм.,
-    # если в задании не указано?
+    search_fields = ('name', 'measurement_unit')
     list_filter = ('measurement_unit',)
-
-    def recipes_count(self, ingredient):
-        count = ingredient.recipe_ingredients.select_related('recipe').count()
-        return count
 
 
 admin.site.register(RecipeIngredient)
