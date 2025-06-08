@@ -24,16 +24,16 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ('email', 'username')
 
     def full_name(self, user):
-        return user
+        return f'{user.last_name} {user.first_name}'
 
     def recipe_count(self, user):
-        return Recipe.objects.filter(author=user).count()
+        return user.recipes.count()
 
     def followings_count(self, user):
-        return Follow.objects.filter(following=user).count()
+        return user.followings.count()
 
     def followers_count(self, user):
-        return Follow.objects.filter(user=user).count()
+        return user.followers.count()
 
     def avatar(self, user):
         if user.avatar:
@@ -56,7 +56,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('author',)
 
     def favorite_count(self, recipe):
-        count = Favorite.objects.filter(recipe=recipe).count()
+        count = recipe.favorites.count()
         return count
 
     def image(self, recipe):
@@ -65,15 +65,11 @@ class RecipeAdmin(admin.ModelAdmin):
     def ingredients_display(self, recipe):
         ingredients_list = RecipeIngredient.objects.filter(
             recipe=recipe
-        ).select_related('name')
-        print(ingredients_list)
-        if not ingredients_list:
-            return "-"
-        html = "<ul>"
+        ).select_related('ingredient')
+        html = ''
         for ingr in ingredients_list:
-            ingr_name = ingr.name.name
-            html += f"<li><strong>{ingr_name}</strong> — {ingr.amount}</li>"
-        html += "</ul>"
+            html += f"<br><strong>{ingr.ingredient.name}</strong> — {ingr.amount} {ingr.ingredient.measurement_unit}</br>"
+        html += "</br>"
         return mark_safe(html)
 
 
@@ -90,9 +86,7 @@ class IngredientAdmin(admin.ModelAdmin):
     list_filter = ('measurement_unit',)
 
     def recipes_count(self, ingredient):
-        count = RecipeIngredient.objects.filter(
-            name=ingredient
-        ).select_related('recipe').count()
+        count = ingredient.recipe_ingredients.select_related('recipe').count()
         return count
 
 

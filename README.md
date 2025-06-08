@@ -1,7 +1,7 @@
 # Проект FOODGRAM
 
 Автор - Борин Игорь Михайлович
-https://t.me/Holoforka
+[Телеграм](https://t.me/Holoforka)
 
 Технологии, использованные в проекте:
 Python
@@ -36,9 +36,6 @@ Docker
 ```docker compose exec backend python manage.py migrate```
 
 ```docker compose exec backend python manage.py add_ingredients```
-
-Если нужно добавить тестовых пользователей и рецепты:
-```docker compose exec backend python manage.py loaddata data.json```
 
 
 Перезапустить контейнеры:

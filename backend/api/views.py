@@ -4,12 +4,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.http import FileResponse, JsonResponse
 from djoser.views import UserViewSet
+from django.urls import reverse
 from django.contrib.auth import get_user_model
-from rest_framework.exceptions import NotFound
 from rest_framework.decorators import action
 from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
-import os
 import datetime
 
 from .pagination import PageLimitPagination
@@ -45,62 +44,50 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='get-link')
     def get_short_url(self, request, pk=None):
-        base_url = request.build_absolute_uri('/')
-        return JsonResponse(
-            {'short-link': f'{base_url}s/{pk}'},
-            status=status.HTTP_200_OK)
+        short_path = reverse('short-link', kwargs={'recipe_id': pk})
+        full_url = request.build_absolute_uri(short_path)
+        return JsonResponse({'short-link': full_url},
+                            status=status.HTTP_200_OK)
+
+    def add_to_favorite_or_shopping_list(self, request, pk, db_model):
+        recipe = get_object_or_404(Recipe, id=pk)
+        user = request.user
+        favorite, created = db_model.objects.get_or_create(user=user,
+                                                           recipe=recipe)
+        if not created:
+            return Response({'detail': f'Рецепт {recipe} уже в избранном.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        serializer = ShortRecipeSerializer(recipe,
+                                           context={'request': request})
+        return serializer
+
+    def delete_from_favorite_or_shopping_list(self, request, pk, db_model):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        user = request.user
+
+        item = get_object_or_404(db_model, user=user,
+                                 recipe=recipe)
+
+        item.delete()
 
     @action(detail=True, methods=['post'], url_path='favorite')
     def add_to_favorite(self, request, pk=None):
-        recipe = get_object_or_404(Recipe, id=pk)
-        user = request.user
-
-        if Favorite.objects.filter(user=user, recipe=recipe).exists():
-            return Response({'detail': 'Рецепт уже в избранном.'},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        Favorite.objects.create(user=user, recipe=recipe)
-        serializer = ShortRecipeSerializer(recipe,
-                                           context={'request': request})
+        serializer = self.add_to_favorite_or_shopping_list(request, pk, Favorite)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @add_to_favorite.mapping.delete
     def delete_from_favorite(self, request, pk=None):
-        user = request.user
-        recipe = get_object_or_404(Recipe, id=pk)
-
-        try:
-            favorite = Favorite.objects.get(user=user, recipe=recipe)
-        except Favorite.DoesNotExist:
-            raise NotFound('Рецепт не найден в избранном.')
-
-        favorite.delete()
+        self.delete_from_favorite_or_shopping_list(request, pk, Favorite)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'], url_path='shopping_cart')
     def add_to_shopping_list(self, request, pk=None):
-        recipe = get_object_or_404(Recipe, pk=pk)
-        user = request.user
-
-        # Проверка на дубликат
-        if ShoppingList.objects.filter(user=user, recipe=recipe).exists():
-            return Response({'detail': 'Рецепт уже в списке покупок.'},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        ShoppingList.objects.create(user=user, recipe=recipe)
-
-        serializer = ShortRecipeSerializer(recipe, context={'request': request})
+        serializer = self.add_to_favorite_or_shopping_list(request, pk, ShoppingList)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @add_to_shopping_list.mapping.delete
     def delete_from_shopping_list(self, request, pk=None):
-        recipe = get_object_or_404(Recipe, pk=pk)
-        user = request.user
-
-        shopping_item = get_object_or_404(ShoppingList, user=user,
-                                          recipe=recipe)
-
-        shopping_item.delete()
+        self.delete_from_favorite_or_shopping_list(request, pk, ShoppingList)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=['get'], url_path='download_shopping_cart',
@@ -112,30 +99,28 @@ class RecipeViewSet(viewsets.ModelViewSet):
         for item in shopping_list:
             recipe = item.recipe
             recipe_ingredients = RecipeIngredient.objects.filter(
-                recipe=recipe).order_by('name')
+                recipe=recipe)
             recipes.add(recipe)
             for ingredient in recipe_ingredients.all():
-                if ingredient.name not in ingredients:
-                    ingredients[ingredient.name] = {
+                if ingredient.ingredient not in ingredients:
+                    ingredients[ingredient.ingredient.name] = {
                         'amount': ingredient.amount,
-                        'measurement_unit': ingredient.measurement_unit
+                        'measurement_unit': ingredient.ingredient.measurement_unit
                     }
                 else:
                     ingredients[ingredient.name]['amount'] += ingredient.amount
-        filename = 'shopping_list.txt'
-        file_path = os.path.join('media', filename)
+        ingredients = dict(sorted(ingredients.items()))
         to_str = []
         for key in ingredients.keys():
-            to_str.append(f"{key.name.capitalize()} - {ingredients[key]['amount']} {ingredients[ingredient.name]['measurement_unit']}")
-        recipes = [recipe.name.capitalize() for recipe in recipes]
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(f'Список покупок от {str(datetime.datetime.now().replace(second=0, microsecond=0))[:-3]}:\n\n')
-            f.write('\n'.join(['Продукты:\n',
-                '\n'.join(to_str), '\n',
-                'Для рецептов:\n',
-                '\n'.join(recipes),
-            ]))
-        response = FileResponse(open(file_path, 'rb'), content_type='text/plain')
+            to_str.append(f"{key.capitalize()} - {ingredients[key]['amount']} {ingredients[ingredient.ingredient.name]['measurement_unit']}")
+        recipes = [recipe.name for recipe in recipes]
+        output = f'Список покупок от {str(datetime.datetime.now().replace(second=0, microsecond=0))[:-3]}:\n' + '\n'.join(
+            ['Продукты:\n',
+             '\n'.join(to_str), '\n',
+             'Для рецептов:\n',
+             '\n'.join(recipes),
+             ])
+        response = FileResponse(output, content_type='text/plain')
         # response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
@@ -189,9 +174,9 @@ class CustomUserViewSet(UserViewSet):
             return Response({'error': 'Нельзя подписаться на самого себя.'},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        if Follow.objects.filter(user=user, following=user_to_follow).exists():
+        if user.followers.filter(following=user_to_follow).exists():
             return Response(
-                {'error': 'Вы уже подписаны на этого пользователя.'},
+                {'error': f'Вы уже подписаны на пользователя {user_to_follow}.'},
                 status=status.HTTP_400_BAD_REQUEST)
 
         Follow.objects.create(user=user, following=user_to_follow)
@@ -202,10 +187,10 @@ class CustomUserViewSet(UserViewSet):
     @follow.mapping.delete
     def unfollow(self, request, id=None):
         user = request.user
-        user_to_unfollow = get_object_or_404(User, id=id)
+        # user_to_unfollow = get_object_or_404(User, id=id)
         following_instance = get_object_or_404(
             Follow, user=user,
-            following=user_to_unfollow)
+            following__id=id)
         following_instance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -218,6 +203,4 @@ class CustomUserViewSet(UserViewSet):
         page = self.paginate_queryset(queryset)
         serializer = FollowUserSerializer(page or queryset, many=True,
                                           context={'request': request})
-        if page is not None:
-            return self.get_paginated_response(serializer.data)
-        return Response(serializer.data)
+        return self.get_paginated_response(serializer.data)

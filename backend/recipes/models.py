@@ -58,7 +58,7 @@ class Ingredient(models.Model):
 
 class Recipe(models.Model):
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='recipe',
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='recipes',
         verbose_name='Автор рецепта'
     )
     name = models.CharField(max_length=256, verbose_name='Название')
@@ -71,7 +71,7 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         through="RecipeIngredient",
-        related_name='ingredients',
+        related_name='recipes',
         verbose_name='Ингредиенты'
     )
     cooking_time = models.PositiveIntegerField(
@@ -90,10 +90,10 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='recipes',
+        related_name='ingredients_in_recipes',
         verbose_name='Рецепт'
     )
-    name = models.ForeignKey(
+    ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
         related_name='recipe_ingredients',
@@ -103,21 +103,21 @@ class RecipeIngredient(models.Model):
         validators=[MinValueValidator(1)],
         verbose_name='Количество ингредиента',
     )
-    measurement_unit = models.CharField(
+    '''measurement_unit = models.CharField(
         max_length=64,
         null=True,
         verbose_name='Единица измерения ингредиента'
-    )
+    )'''
 
     def __str__(self):
-        return f'{self.recipe} - {self.name}'
+        return f'{self.recipe} - {self.ingredient}'
 
     class Meta:
         verbose_name = 'Ингредиент рецепта'
         verbose_name_plural = 'Ингредиенты рецептов'
         constraints = [
             models.UniqueConstraint(
-                fields=['recipe', 'name'],
+                fields=['recipe', 'ingredient'],
                 name='unique_recipe_ingredient')
         ]
 
@@ -154,7 +154,7 @@ class Follow(models.Model):
 class Favorite(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-        related_name='members',
+        related_name='favorite_recipes',
         verbose_name='Кто добавил'
     )
     recipe = models.ForeignKey(
@@ -180,13 +180,13 @@ class ShoppingList(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='list_owners',
+        related_name='shopping_cart',
         verbose_name='Владелец списка',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='list_recipes',
+        related_name='shopping_cart',
         verbose_name='Рецепты в списке',
     )
 
